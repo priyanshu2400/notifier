@@ -57,12 +57,14 @@ For EACH job, respond with a JSON object containing:
 - "reason": brief 1-sentence reason
 
 A job should be a GOOD FIT (match: true) if:
-1. It's junior / associate level (0-2 YOE) — REJECT senior roles AND internships/intern roles
-2. It involves backend, infrastructure, SRE, DevOps, or cloud work
-3. The tech stack includes at least one of: Go, Python, Docker, Kubernetes, Linux, cloud, databases
+1. It's entry to mid-level (1-3 YOE) — REJECT senior/lead/staff/manager roles AND internships/intern roles
+2. It's a software engineering role — Backend, Full Stack, SRE, DevOps, Platform, Cloud, Infrastructure, or any SDE role
+3. The tech stack includes at least one of: Go, Python, Java, JavaScript, Docker, Kubernetes, Linux, cloud, databases, React, Node.js
 4. Location is ACCEPTABLE if: (a) in India (Bangalore preferred), OR (b) Fully Remote from anywhere in the world. REJECT only if it's onsite AND outside India.
-5. It's NOT a pure frontend, data analyst, marketing, or sales role
-6. It's NOT an internship — the user has 1+ years experience and is overqualified for internships
+5. It's NOT a pure hardware, embedded, firmware, mechanical, civil, electrical, or chip design role
+6. It's NOT a pure frontend-only, data analyst, marketing, or sales role
+7. It's NOT an internship — the user has 1+ years experience and is overqualified for internships
+8. Roles requiring Java, C#, .NET, or similar are ACCEPTABLE if the role is software engineering
 
 Respond ONLY with a valid JSON array. No markdown, no explanation outside the JSON.
 

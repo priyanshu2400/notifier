@@ -46,11 +46,11 @@ DEFAULT_SEARCH_STATE = {
     ],
     "dateFetchedPastNDays": 4,
     "departments": ["Software Development", "Engineering"],
-    "roleYoeRange": [0, 2],
+    "roleYoeRange": [0, 3],
 }
 
 # ─── Filters ─────────────────────────────────────────────────────────────
-SENIORITY_KEYWORDS = ["no prior", "entry", "junior", "associate", "not mentioned"]
+SENIORITY_KEYWORDS = ["no prior", "entry", "junior", "associate", "mid level", "not mentioned"]
 INTERNSHIP_KEYWORDS = ["intern", "internship"]
 MAX_COMPENSATION_LAKHS = 15
 

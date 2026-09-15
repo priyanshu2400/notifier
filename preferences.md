@@ -19,10 +19,12 @@
 ## Target Roles
 
 - Backend Engineer / Software Engineer (Backend)
+- Full Stack Engineer / Software Engineer (Full Stack)
 - SRE / DevOps / Platform Engineer
 - Cloud Infrastructure Engineer
 - Systems Engineer
-- **Level:** Junior / Associate (0-2 YOE) — NO INTERNSHIPS (1+ years experience)
+- Any Software Engineering role (SDE1, SDE2)
+- **Level:** Entry to Mid-level (1-3 YOE) — NO INTERNSHIPS, NO Senior/Staff/Manager
 
 ## Target Companies
 
@@ -43,9 +45,9 @@
 ## Job Criteria (Must Match)
 
 1. **Location:** Bangalore preferred, Remote (India), Hybrid in India, OR Fully Remote (anywhere in the world)
-2. **Level:** Junior / Associate ONLY — NO Internships, NO Mid/Senior/Staff/Manager
-3. **Role Type:** Backend, Infrastructure, SRE, DevOps, Platform, Cloud
-4. **Tech Stack:** Should involve at least ONE of: Go, Python, Docker, Kubernetes, Linux, Cloud, Databases
+2. **Level:** Entry to Mid-level (1-3 YOE) — NO Internships, NO Senior/Staff/Manager/Director
+3. **Role Type:** Any Software Engineering role — Backend, Full Stack, SRE, DevOps, Platform, Cloud, Infrastructure
+4. **Tech Stack:** Should involve at least ONE of: Go, Python, Java, JavaScript, Docker, Kubernetes, Linux, Cloud, Databases, React, Node.js
 5. **Work Mode:** Remote (anywhere), Hybrid, or Onsite in Bangalore
 
 ## Dealbreakers (Reject if any match)
