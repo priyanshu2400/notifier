@@ -44,8 +44,8 @@ DEFAULT_SEARCH_STATE = {
             "options": {"radius": 50, "radius_unit": "miles", "ignore_radius": False},
         },
     ],
-    "dateFetchedPastNDays": 2,
-    "departments": ["Software+Development", "Engineering"],
+    "dateFetchedPastNDays": 4,
+    "departments": ["Software Development", "Engineering"],
     "roleYoeRange": [0, 2],
 }
 
