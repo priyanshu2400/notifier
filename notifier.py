@@ -138,15 +138,22 @@ def scrape_and_notify():
     new_count = len(new_jobs)
     logger.info(f"✅ Dedup result: {new_count} new, {already_seen} already seen")
 
+    # ── Stage 5: Score Filter (≥ 70 only) ──
+    QUALITY_THRESHOLD = 70
+    qualified_jobs = [j for j in new_jobs if (j.get("gemini_score") or 0) >= QUALITY_THRESHOLD]
+    low_score = new_count - len(qualified_jobs)
+    if low_score > 0:
+        logger.info(f"🎯 STAGE5: Filtered out {low_score} jobs below score {QUALITY_THRESHOLD}")
+    else:
+        logger.info(f"🎯 STAGE5: All {len(qualified_jobs)} jobs meet score threshold (≥{QUALITY_THRESHOLD})")
+
     # ── Stage 5: Telegram Notification ──
     logger.info("-" * 60)
     notified = 0
-    if new_jobs:
-        logger.info(f"📨 STAGE 5: Sending {new_count} jobs to Telegram...")
-        # DB already has jobs saved (from Stage 4 insert_job)
-        # Now send notifications, then mark as notified
-        notified = notify_new_jobs(bot_token, chat_ids, new_jobs)
-        notified_ids = [j["id"] for j in new_jobs]
+    if qualified_jobs:
+        logger.info(f"📨 STAGE 5: Sending {len(qualified_jobs)} jobs to Telegram...")
+        notified = notify_new_jobs(bot_token, chat_ids, qualified_jobs)
+        notified_ids = [j["id"] for j in qualified_jobs]
         if notified_ids:
             mark_notified(notified_ids)
             logger.info(f"✅ Sent {notified} message(s) across {len(chat_ids)} destination(s) — {new_count} jobs marked as notified")
@@ -163,7 +170,7 @@ def scrape_and_notify():
     logger.info("-" * 60)
     logger.info("📊 RUN SUMMARY")
     logger.info(f"   Duration: {run_duration:.1f}s")
-    logger.info(f"   Scraped: {len(jobs)} | Python filtered: {len(filtered)} | New: {new_count} | Notified: {notified}")
+    logger.info(f"   Scraped: {len(jobs)} | Python filtered: {len(filtered)} | New: {new_count} | Qualified (≥{QUALITY_THRESHOLD}): {len(qualified_jobs)} | Notified: {notified}")
     logger.info(f"   DB: {stats['total_tracked_jobs']} total tracked | {stats['pending_notification']} pending")
     logger.info(f"🏁 RUN ENDED at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 60)
