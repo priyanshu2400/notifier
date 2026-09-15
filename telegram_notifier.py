@@ -97,6 +97,34 @@ def send_telegram_message(
         return False
 
 
+def format_all_jobs(jobs: list[dict]) -> list[str]:
+    """Format all jobs into message(s). Splits at Telegram's4096 char limit."""
+    TELEGRAM_MAX =4096
+    
+    header = f"\U0001f514 <b>{len(jobs)} New Job{'s' if len(jobs) != 1 else ''} Found!</b>\n"
+    header += f"\U0001f4cb From HiringCafe \u2014 Bengaluru & Asia\n\n"
+    
+    messages = []
+    current = header
+    
+    for i, job in enumerate(jobs, 1):
+        job_text = format_job_message(job)
+        separator = f"\n{'━' * 30}\n\n" if i < len(jobs) else ""
+        candidate = current + f"<b>{i}.</b> " + job_text + separator
+        
+        if len(candidate) > TELEGRAM_MAX and current != header:
+            messages.append(current)
+            current = f"\U0001f514 <b>Continued ({i}-{len(jobs)})...</b>\n\n"
+            current += f"<b>{i}.</b> " + job_text + separator
+        else:
+            current = candidate
+    
+    if current.strip():
+        messages.append(current)
+    
+    return messages
+
+
 def notify_new_jobs(bot_token: str, chat_ids: str | list[str], jobs: list[dict]) -> int:
     """Send notifications for new jobs to one or more chat IDs. Returns count of successfully sent."""
     if not jobs:
@@ -107,17 +135,16 @@ def notify_new_jobs(bot_token: str, chat_ids: str | list[str], jobs: list[dict])
     if isinstance(chat_ids, str):
         chat_ids = [chat_ids]
     
+    messages = format_all_jobs(jobs)
+    logger.info(f"Formatted {len(jobs)} jobs into {len(messages)} message(s)")
+    
     sent = 0
     for chat_id in chat_ids:
-        # Send summary header
-        header = f"\U0001f514 <b>{len(jobs)} New Job{'s' if len(jobs) != 1 else ''} Found!</b>\n"
-        header += f"\U0001f4cb From HiringCafe \u2014 Bengaluru & Asia"
-        send_telegram_message(bot_token, chat_id, header)
-        
-        for job in jobs:
-            message = format_job_message(job)
-            if send_telegram_message(bot_token, chat_id, message):
+        for i, msg in enumerate(messages, 1):
+            if send_telegram_message(bot_token, chat_id, msg):
                 sent += 1
+    
+    return sent
     
     logger.info(f"Sent {sent}/{len(jobs) * len(chat_ids)} job notifications across {len(chat_ids)} destination(s)")
     return sent // len(chat_ids) if chat_ids else 0
