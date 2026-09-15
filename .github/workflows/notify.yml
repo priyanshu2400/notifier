@@ -49,12 +49,6 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PREFERENCES_MD: ${{ secrets.PREFERENCES_MD }}
 
-      - name: Save database
-        uses: actions/cache/save@v4
-        with:
-          path: jobs.db
-          key: jobs-db-cache
-
       - name: Schedule next run (10 min)
         if: always()
         shell: bash

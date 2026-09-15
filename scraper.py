@@ -64,8 +64,8 @@ def fetch_jobs(custom_url: str | None = None) -> list[dict]:
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             )
             page = context.new_page()
-            page.goto(url, wait_until="networkidle", timeout=30000)
-            page.wait_for_timeout(3000)
+            page.goto(url, wait_until="domcontentloaded", timeout=90000)
+            page.wait_for_timeout(5000)
 
             next_data = page.evaluate("""() => {
                 const el = document.getElementById('__NEXT_DATA__');
