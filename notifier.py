@@ -76,12 +76,10 @@ def scrape_and_notify():
 
     # ── Stage 2: Python Filters ──
     logger.info("-" * 60)
-    logger.info("🔍 STAGE 2: Applying Python filters (seniority, internship, compensation)...")
+    logger.info("🔍 STAGE 2: Applying Python filters (seniority, internship)...")
     filtered = []
     skipped_senior = 0
     skipped_intern = 0
-    skipped_salary = 0
-    skipped_other = 0
 
     for job in jobs:
         # Seniority check
@@ -99,17 +97,10 @@ def scrape_and_notify():
             logger.info(f"   ❌ SKIP (internship): {job['title']} @ {job['company']}")
             continue
 
-        # Compensation cap
-        salary_max = job.get("salary_max")
-        if salary_max and salary_max > max_comp * 100000:
-            skipped_salary += 1
-            logger.info(f"   ❌ SKIP (salary ₹{salary_max/100000:.1f}L > ₹{max_comp}L): {job['title']} @ {job['company']}")
-            continue
-
         filtered.append(job)
 
     logger.info(f"✅ After Python filters: {len(filtered)}/{len(jobs)} jobs remain")
-    logger.info(f"   Removed: {skipped_senior} senior | {skipped_intern} intern | {skipped_salary} overpaid | {skipped_other} other")
+    logger.info(f"   Removed: {skipped_senior} senior | {skipped_intern} intern")
 
     if not filtered:
         logger.info("No jobs left after Python filters — stopping here")

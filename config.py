@@ -52,7 +52,6 @@ DEFAULT_SEARCH_STATE = {
 # ─── Filters ─────────────────────────────────────────────────────────────
 SENIORITY_KEYWORDS = ["no prior", "entry", "junior", "associate", "mid level", "not mentioned"]
 INTERNSHIP_KEYWORDS = ["intern", "internship"]
-MAX_COMPENSATION_LAKHS = 15
 
 # ─── Gemini API ──────────────────────────────────────────────────────────
 GEMINI_MODEL = "gemini-3.5-flash-lite"
