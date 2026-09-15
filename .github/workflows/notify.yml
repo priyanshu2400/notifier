@@ -3,6 +3,9 @@ name: HiringCafe Job Notifier
 on:
   workflow_dispatch:
 
+permissions:
+  actions: write
+
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -13,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -51,6 +54,28 @@ jobs:
         with:
           path: jobs.db
           key: jobs-db-cache
+
+      - name: Schedule next run (10 min)
+        if: always()
+        shell: bash
+        run: |
+          echo "⏰ Waiting 10 minutes before next run..."
+          sleep 600
+          echo "✅ Done waiting, triggering next run..."
+
+      - name: Trigger next run
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'notify.yml',
+              ref: 'main'
+            });
+            console.log('🚀 Next run dispatched!');
 
       - name: Save database
         uses: actions/cache/save@v4
