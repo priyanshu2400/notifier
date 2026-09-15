@@ -1,0 +1,55 @@
+name: HiringCafe Job Notifier
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+
+      - name: Create config.json
+        run: |
+          cat > config.json << 'EOF'
+          {
+            "telegram_bot_token": "${{ secrets.TELEGRAM_BOT_TOKEN }}",
+            "telegram_chat_ids": ${{ secrets.TELEGRAM_CHAT_IDS }},
+            "hiringcafe_url": "${{ secrets.HIRINGCAFE_URL }}",
+            "scrape_interval_minutes": 7,
+            "max_compensation_lakhs": 15
+          }
+          EOF
+
+      - name: Restore job database
+        uses: actions/cache@v4
+        with:
+          path: jobs.db
+          key: jobs-db-cache
+
+      - name: Run notifier
+        run: python notifier.py once
+        env:
+          PYTHONUNBUFFERED: 1
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PREFERENCES_MD: ${{ secrets.PREFERENCES_MD }}
+
+      - name: Save database
+        uses: actions/cache/save@v4
+        with:
+          path: jobs.db
+          key: jobs-db-cache
