@@ -110,11 +110,7 @@ def scrape_and_notify():
     if gemini_key and filtered:
         logger.info(f"🤖 STAGE 3: Sending {len(filtered)} jobs to Gemini AI for preference matching...")
         filtered = gemini_filter_jobs(gemini_key, filtered)
-        if not filtered:
-            logger.info("No jobs matched preferences after Gemini filtering")
-            log_scrape(len(jobs), 0, 0)
-            return
-        logger.info(f"✅ Gemini approved {len(filtered)} jobs:")
+        logger.info(f"✅ Gemini scored {len(filtered)} jobs:")
         for i, job in enumerate(filtered, 1):
             score = job.get('gemini_score', '?')
             reason = job.get('gemini_reason', 'N/A')
