@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 def scrape_and_notify():
     """Main job: scrape HiringCafe and notify about new jobs."""
+    run_start = datetime.now()
     config = load_config()
     bot_token = config["telegram_bot_token"]
     chat_ids = config.get("telegram_chat_ids", [])
@@ -47,13 +48,20 @@ def scrape_and_notify():
     max_comp = config.get("max_compensation_lakhs", MAX_COMPENSATION_LAKHS)
     gemini_key = load_api_key()
 
+    # ── Run Header ──
+    logger.info("=" * 60)
+    logger.info(f"🚀 RUN STARTED at {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"   Destinations: {chat_ids}")
+    logger.info(f"   Compensation cap: ₹{max_comp}L")
+    logger.info(f"   Gemini AI: {'enabled' if gemini_key else 'DISABLED (no API key)'}")
+
     if not chat_ids:
         logger.warning("No telegram_chat_ids configured — run setup first")
         return
 
-    logger.info("Starting scrape...")
-
-    # Fetch jobs
+    # ── Stage 1: Scrape ──
+    logger.info("-" * 60)
+    logger.info("📡 STAGE 1: Scraping HiringCafe...")
     jobs = fetch_jobs(custom_url if custom_url else None)
 
     if not jobs:
@@ -61,57 +69,114 @@ def scrape_and_notify():
         log_scrape(0, 0, 0)
         return
 
-    # Filter for entry-level, no internships, and compensation cap
+    logger.info(f"✅ Scraped {len(jobs)} jobs:")
+    for i, job in enumerate(jobs, 1):
+        logger.info(f"   {i}. {job['title']} @ {job['company']}")
+        logger.info(f"      📍 {job['location']} | {job['workplace_type']} | Seniority: {job.get('seniority', 'N/A')}")
+
+    # ── Stage 2: Python Filters ──
+    logger.info("-" * 60)
+    logger.info("🔍 STAGE 2: Applying Python filters (seniority, internship, compensation)...")
     filtered = []
+    skipped_senior = 0
+    skipped_intern = 0
+    skipped_salary = 0
+    skipped_other = 0
+
     for job in jobs:
         # Seniority check
         seniority = (job.get("seniority") or "").lower()
         if not any(kw in seniority for kw in SENIORITY_KEYWORDS):
+            skipped_senior += 1
+            logger.info(f"   ❌ SKIP (seniority='{job.get('seniority', 'N/A')}'): {job['title']} @ {job['company']}")
             continue
 
         # Exclude internships
         commitment = " ".join(job.get("commitment", [])).lower()
         title_lower = (job.get("title") or "").lower()
         if any(kw in commitment or kw in title_lower for kw in INTERNSHIP_KEYWORDS):
-            logger.info(f"Skipping internship: {job['title']}")
+            skipped_intern += 1
+            logger.info(f"   ❌ SKIP (internship): {job['title']} @ {job['company']}")
             continue
 
         # Compensation cap
         salary_max = job.get("salary_max")
         if salary_max and salary_max > max_comp * 100000:
-            logger.info(f"Skipping {job['title']} — salary ₹{salary_max/100000:.1f}L > {max_comp}L")
+            skipped_salary += 1
+            logger.info(f"   ❌ SKIP (salary ₹{salary_max/100000:.1f}L > ₹{max_comp}L): {job['title']} @ {job['company']}")
             continue
 
         filtered.append(job)
 
-    # Gemini AI filtering
+    logger.info(f"✅ After Python filters: {len(filtered)}/{len(jobs)} jobs remain")
+    logger.info(f"   Removed: {skipped_senior} senior | {skipped_intern} intern | {skipped_salary} overpaid | {skipped_other} other")
+
+    if not filtered:
+        logger.info("No jobs left after Python filters — stopping here")
+        log_scrape(len(jobs), 0, 0)
+        return
+
+    # ── Stage 3: Gemini AI Filter ──
+    logger.info("-" * 60)
     if gemini_key and filtered:
-        logger.info("Applying Gemini AI filter...")
+        logger.info(f"🤖 STAGE 3: Sending {len(filtered)} jobs to Gemini AI for preference matching...")
         filtered = gemini_filter_jobs(gemini_key, filtered)
         if not filtered:
             logger.info("No jobs matched preferences after Gemini filtering")
             log_scrape(len(jobs), 0, 0)
             return
+        logger.info(f"✅ Gemini approved {len(filtered)} jobs:")
+        for i, job in enumerate(filtered, 1):
+            score = job.get('gemini_score', '?')
+            reason = job.get('gemini_reason', 'N/A')
+            logger.info(f"   {i}. [{score}/100] {job['title']} @ {job['company']}")
+            logger.info(f"      💬 {reason}")
+    else:
+        logger.info("⏭️  STAGE 3: Skipping Gemini (no API key or no jobs)")
+        if not gemini_key:
+            logger.warning("   ⚠️  GEMINI_API_KEY not set — jobs pass through unfiltered")
 
-    # Check for new jobs
-    new_jobs = [job for job in filtered if insert_job(job)]
+    # ── Stage 4: Dedup Check ──
+    logger.info("-" * 60)
+    logger.info(f"🗃️  STAGE 4: Dedup check against database...")
+    new_jobs = []
+    already_seen = 0
+    for job in filtered:
+        if insert_job(job):
+            new_jobs.append(job)
+            logger.info(f"   🆕 NEW: {job['title']} @ {job['company']}")
+        else:
+            already_seen += 1
+            logger.info(f"   🔁 ALREADY NOTIFIED: {job['title']} @ {job['company']}")
 
     total_found = len(filtered)
     new_count = len(new_jobs)
+    logger.info(f"✅ Dedup result: {new_count} new, {already_seen} already seen")
 
-    logger.info(f"Scrape complete: {total_found} total, {new_count} new")
-
-    # Send notifications
+    # ── Stage 5: Telegram Notification ──
+    logger.info("-" * 60)
     notified = 0
     if new_jobs:
+        logger.info(f"📨 STAGE 5: Sending {new_count} jobs to Telegram...")
         notified = notify_new_jobs(bot_token, chat_ids, new_jobs)
         notified_ids = [j["id"] for j in new_jobs[:notified]]
         mark_notified(notified_ids)
+        logger.info(f"✅ Sent {notified}/{new_count} notifications")
+    else:
+        logger.info("📨 STAGE 5: No new jobs to notify")
 
+    # ── Run Summary ──
     log_scrape(total_found, new_count, notified)
-
     stats = get_stats()
-    logger.info(f"Stats: {stats['total_tracked_jobs']} tracked, {stats['pending_notification']} pending")
+    run_duration = (datetime.now() - run_start).total_seconds()
+
+    logger.info("-" * 60)
+    logger.info("📊 RUN SUMMARY")
+    logger.info(f"   Duration: {run_duration:.1f}s")
+    logger.info(f"   Scraped: {len(jobs)} | Python filtered: {len(filtered)} | New: {new_count} | Notified: {notified}")
+    logger.info(f"   DB: {stats['total_tracked_jobs']} total tracked | {stats['pending_notification']} pending")
+    logger.info(f"🏁 RUN ENDED at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 60)
 
 
 def setup_chat_id():

@@ -157,12 +157,15 @@ def filter_jobs(api_key: str, jobs: list[dict]) -> list[dict]:
     result_map = {r["id"]: r for r in results if "id" in r}
 
     matched_jobs = []
+    rejected_jobs = []
     for job in jobs:
         result = result_map.get(job["id"])
         if result and result.get("match", False):
             job["gemini_score"] = result.get("score", 0)
             job["gemini_reason"] = result.get("reason", "")
             matched_jobs.append(job)
+        elif result and not result.get("match", False):
+            rejected_jobs.append((job, result))
         elif not result:
             # If Gemini didn't return a result for this job, include it with a note
             logger.warning(f"No Gemini result for job {job.get('id')} — including with default score")
@@ -173,6 +176,15 @@ def filter_jobs(api_key: str, jobs: list[dict]) -> list[dict]:
     logger.info(
         f"Gemini filtered: {len(matched_jobs)}/{len(jobs)} jobs match preferences"
     )
+
+    if rejected_jobs:
+        logger.info("   Rejected by Gemini:")
+        for job, result in rejected_jobs:
+            score = result.get("score", "?")
+            reason = result.get("reason", "N/A")
+            logger.info(f"   ❌ [{score}/100] {job['title']} @ {job['company']}")
+            logger.info(f"      💬 {reason}")
+
     return matched_jobs
 
 

@@ -55,7 +55,7 @@ def fetch_jobs(custom_url: str | None = None) -> list[dict]:
     from playwright.sync_api import sync_playwright
 
     url = custom_url or build_url()
-    logger.info(f"Fetching jobs from: {url[:100]}...")
+    logger.info(f"Fetching jobs from: {url[:120]}...")
 
     try:
         with sync_playwright() as p:
@@ -83,7 +83,9 @@ def fetch_jobs(custom_url: str | None = None) -> list[dict]:
         total = data.get("props", {}).get("pageProps", {}).get("ssrTotalCount", 0)
 
         logger.info(f"Found {len(hits)} jobs (total available: {total})")
-        return [parse_job(h) for h in hits if h.get("id")]
+        parsed = [parse_job(h) for h in hits if h.get("id")]
+        logger.info(f"Parsed {len(parsed)} jobs from page data")
+        return parsed
 
     except Exception as e:
         logger.error(f"Scrape failed: {e}")
