@@ -35,8 +35,7 @@ jobs:
             "telegram_bot_token": "${{ secrets.TELEGRAM_BOT_TOKEN }}",
             "telegram_chat_ids": ${{ secrets.TELEGRAM_CHAT_IDS }},
             "hiringcafe_url": "${{ secrets.HIRINGCAFE_URL }}",
-            "scrape_interval_minutes": 7,
-            "max_compensation_lakhs": 15
+            "scrape_interval_minutes": 10
           }
           EOF
 
@@ -44,7 +43,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: jobs.db
-          key: jobs-db-cache
+          key: jobs-db-${{ github.run_id }}
+          restore-keys: |
+            jobs-db-
 
       - name: Run notifier
         run: python notifier.py once
@@ -74,9 +75,3 @@ jobs:
               ref: 'main'
             });
             console.log('🚀 Next run dispatched!');
-
-      - name: Save database
-        uses: actions/cache/save@v4
-        with:
-          path: jobs.db
-          key: jobs-db-cache
