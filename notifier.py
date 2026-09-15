@@ -158,10 +158,15 @@ def scrape_and_notify():
     notified = 0
     if new_jobs:
         logger.info(f"📨 STAGE 5: Sending {new_count} jobs to Telegram...")
+        # DB already has jobs saved (from Stage 4 insert_job)
+        # Now send notifications, then mark as notified
         notified = notify_new_jobs(bot_token, chat_ids, new_jobs)
         notified_ids = [j["id"] for j in new_jobs[:notified]]
-        mark_notified(notified_ids)
-        logger.info(f"✅ Sent {notified}/{new_count} notifications")
+        if notified_ids:
+            mark_notified(notified_ids)
+            logger.info(f"✅ Sent {notified}/{new_count} notifications — marked as notified in DB")
+        else:
+            logger.warning(f"⚠️  0/{new_count} notifications sent — jobs remain pending in DB for retry")
     else:
         logger.info("📨 STAGE 5: No new jobs to notify")
 

@@ -6,6 +6,10 @@ on:
 permissions:
   actions: write
 
+concurrency:
+  group: hiringcafe-notifier
+  cancel-in-progress: false
+
 jobs:
   notify:
     runs-on: ubuntu-latest
