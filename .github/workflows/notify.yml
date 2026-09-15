@@ -1,8 +1,6 @@
 name: HiringCafe Job Notifier
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -47,6 +45,12 @@ jobs:
           PYTHONUNBUFFERED: 1
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PREFERENCES_MD: ${{ secrets.PREFERENCES_MD }}
+
+      - name: Save database
+        uses: actions/cache/save@v4
+        with:
+          path: jobs.db
+          key: jobs-db-cache
 
       - name: Save database
         uses: actions/cache/save@v4
