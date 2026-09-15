@@ -89,35 +89,6 @@ def fetch_jobs(custom_url: str | None = None) -> list[dict]:
         logger.error(f"Scrape failed: {e}")
         return []
 
-            browser.close()
-
-        if not next_data_str:
-            logger.error("Could not find __NEXT_DATA__ in rendered page")
-            return []
-
-        data = json.loads(next_data_str)
-    except Exception as e:
-        logger.error(f"Failed to fetch/render page: {e}")
-        return []
-
-    page_props = data.get("props", {}).get("pageProps", {})
-    hits = page_props.get("ssrHits", [])
-    total_count = page_props.get("ssrTotalCount", 0)
-
-    logger.info(f"Found {len(hits)} jobs (total: {total_count})")
-
-    jobs = []
-    for hit in hits:
-        try:
-            job = parse_job(hit)
-            if job["id"] and job["title"]:
-                jobs.append(job)
-        except Exception as e:
-            logger.warning(f"Failed to parse job: {e}")
-            continue
-
-    return jobs
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
