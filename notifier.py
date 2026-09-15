@@ -19,7 +19,7 @@ import schedule
 
 from config import (
     CONFIG_FILE, SENIORITY_KEYWORDS, INTERNSHIP_KEYWORDS,
-    MAX_COMPENSATION_LAKHS, load_config, load_api_key, load_preferences,
+    load_config, load_api_key, load_preferences,
 )
 from scraper import fetch_jobs
 from telegram_notifier import notify_new_jobs, test_connection, get_chat_id
@@ -45,14 +45,12 @@ def scrape_and_notify():
     bot_token = config["telegram_bot_token"]
     chat_ids = config.get("telegram_chat_ids", [])
     custom_url = config.get("hiringcafe_url")
-    max_comp = config.get("max_compensation_lakhs", MAX_COMPENSATION_LAKHS)
     gemini_key = load_api_key()
 
     # ── Run Header ──
     logger.info("=" * 60)
     logger.info(f"🚀 RUN STARTED at {run_start.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info(f"   Destinations: {chat_ids}")
-    logger.info(f"   Compensation cap: ₹{max_comp}L")
     logger.info(f"   Gemini AI: {'enabled' if gemini_key else 'DISABLED (no API key)'}")
 
     if not chat_ids:
