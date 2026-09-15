@@ -64,15 +64,16 @@ A job should be a GOOD FIT (match: true) if:
 5. It's NOT a pure hardware, embedded, firmware, mechanical, civil, electrical, or chip design role
 6. It's NOT a pure frontend-only, data analyst, marketing, or sales role
 7. It's NOT an internship — the user has 1+ years experience and is overqualified for internships
-8. Roles requiring Java, JavaScript, TypeScript, C++, Go, Python are ACCEPTABLE
-9. REJECT roles that primarily require C# or .NET — user does not work with these
+8. Roles requiring Java, JavaScript, TypeScript, C++, Go, Python are ACCEPTABLE — even if C# or .NET is also mentioned alongside them
+9. REJECT only roles where C# or .NET is the PRIMARY/sole required language (no acceptable alternatives listed)
 
 Respond ONLY with a valid JSON array. No markdown, no explanation outside the JSON.
 
 Example format:
 [
   {{"id": "job_123", "match": true, "score": 85, "reason": "Go backend role at a cloud company in Bangalore — strong match"}},
-  {{"id": "job_456", "match": false, "score": 20, "reason": "C#/.NET role — not in user's tech stack"}}
+  {{"id": "job_456", "match": true, "score": 70, "reason": "Software Engineer requiring Java/C++/C# — Java and C++ are acceptable"}},
+  {{"id": "job_789", "match": false, "score": 10, "reason": "Pure C#/.NET role with no acceptable alternatives — not in user's tech stack"}}
 ]"""
 
 
