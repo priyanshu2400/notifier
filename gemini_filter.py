@@ -84,25 +84,39 @@ def call_gemini(api_key: str, prompt: str) -> str | None:
         },
     }
 
-    try:
-        response = requests.post(url, json=payload, timeout=60)
-        response.raise_for_status()
-        data = response.json()
+    for attempt in range(3):
+        try:
+            logger.info(f"Gemini API call attempt {attempt + 1}/3 (timeout=120s)...")
+            response = requests.post(url, json=payload, timeout=120)
+            response.raise_for_status()
+            data = response.json()
 
-        # Extract text from Gemini response
-        candidates = data.get("candidates", [])
-        if candidates:
-            parts = candidates[0].get("content", {}).get("parts", [])
-            if parts:
-                return parts[0].get("text", "")
-        logger.error("Empty Gemini response")
-        return None
-    except requests.RequestException as e:
-        logger.error(f"Gemini API request failed: {e}")
-        return None
-    except (KeyError, IndexError) as e:
-        logger.error(f"Failed to parse Gemini response: {e}")
-        return None
+            # Extract text from Gemini response
+            candidates = data.get("candidates", [])
+            if candidates:
+                parts = candidates[0].get("content", {}).get("parts", [])
+                if parts:
+                    logger.info("Gemini responded successfully")
+                    return parts[0].get("text", "")
+            logger.error("Empty Gemini response")
+            return None
+        except requests.exceptions.ReadTimeout:
+            logger.warning(f"Gemini API timed out on attempt {attempt + 1}/3")
+            if attempt < 2:
+                logger.info("Retrying in 5 seconds...")
+                import time
+                time.sleep(5)
+        except requests.RequestException as e:
+            logger.error(f"Gemini API request failed: {e}")
+            if attempt < 2:
+                logger.info("Retrying in 5 seconds...")
+                import time
+                time.sleep(5)
+        except (KeyError, IndexError) as e:
+            logger.error(f"Failed to parse Gemini response: {e}")
+            return None
+    logger.error("All 3 Gemini API attempts failed")
+    return None
 
 
 def parse_gemini_response(response_text: str) -> list[dict]:
